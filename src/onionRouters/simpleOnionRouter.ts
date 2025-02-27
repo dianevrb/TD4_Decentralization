@@ -97,7 +97,7 @@ export async function simpleOnionRouter(nodeId: number) {
         return res.status(400).json({ error: "Missing message" });
       }
 
-      console.log(`[Node ${nodeId}] Message received, decrypting...`);
+      console.log(`Node ${nodeId}: Message received, decrypting...`);
 
       // Extraction de la clé symétrique et du message chiffré
       const encryptedSymKey = message.slice(0, 344);
@@ -116,12 +116,11 @@ export async function simpleOnionRouter(nodeId: number) {
 
       const nextMessage = decryptedPayload.length > 10 ? decryptedPayload.slice(10) : "";
 
-      console.log(`[Node ${nodeId}] Next destination: ${nextDestination !== null ? nextDestination : "Final Destination"}`);
-      console.log(`[Node ${nodeId}] Decrypted message: ${nextMessage.length === 0 ? "<EMPTY MESSAGE>" : nextMessage}`);
+      console.log(`Node ${nodeId}: ➜ Next destination: ${nextDestination ?? "Final Destination"}`);
+      console.log(`Node ${nodeId}:Decrypted message: ${nextMessage.length ? nextMessage : "<EMPTY MESSAGE>"}`);
       
-      if (nextMessage === "") {
-        console.log(`[Node ${nodeId}] Next message is empty, but will still be forwarded.`);
-      }
+      
+      
 
       // Mise à jour de l'état du nœud
       globalThis.nodeStates[nodeId].lastEncryptedMsg = message;
@@ -130,7 +129,6 @@ export async function simpleOnionRouter(nodeId: number) {
 
       // Si c'est le dernier nœud, on arrête ici
       if (nextDestination === null) {
-        console.log(`[Node ${nodeId}] Final message reached, no further forwarding.`);
         return res.json({ status: "Final message reached the last node", message: nextMessage });
       }
 
@@ -138,7 +136,7 @@ export async function simpleOnionRouter(nodeId: number) {
       const isUser = nextDestination >= BASE_USER_PORT;
       const nextUrl = `http://localhost:${nextDestination}/message`;
 
-      console.log(`[Node ${nodeId}] Forwarding message to ${isUser ? "User" : "Node"} at ${nextUrl}`);
+      console.log(`Node ${nodeId}:Forwarding message to ${isUser ? "User" : "Node"} at ${nextUrl}`);
 
       // Transmettre le message au prochain destinataire
       const response = await fetch(nextUrl, {
